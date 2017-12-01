@@ -108,17 +108,20 @@ public class OPRCalc {
 		}
 	}
 	
+	// Change the name of the scores file if you need to.
+	private static final String SCORES_FILE 	= "resources/scores.csv";
+	private static final String OPRS_FILE	= "resources/oprs.csv";
+	
 	public static void main(String[] args) throws IOException {
-		String fileName = "resources/scores.csv";
 		OPRCalc calc = new OPRCalc();
-		Matrix oprs = calc.getOPR(fileName);
+		Matrix oprs = calc.getOPR(SCORES_FILE);
 		Integer[] teamList = calc.teamList;
 		
 		double[][] oprsArr = oprs.getArray();
 		
-		PrintStream out = new PrintStream("resources/oprs.csv");
+		PrintStream out = new PrintStream(OPRS_FILE);
 		for (int i = 0; i < oprsArr.length; i++) {
-			out.println(teamList[i] + "," + oprsArr[i][0]);
+			out.printf(teamList[i] + ",%.2f\n",oprsArr[i][0]);
 		}
 		out.close();
 	}
