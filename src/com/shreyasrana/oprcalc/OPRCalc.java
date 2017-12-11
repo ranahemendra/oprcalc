@@ -6,9 +6,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import Jama.Matrix;
@@ -17,6 +20,7 @@ public class OPRCalc {
 	private double[][] matches;
 	private double[][] scores;
 	private Integer[] teamList;
+	private Map<Integer, Integer> teamMatchCount; 
 	
 	public Matrix getOPR(String fileName) throws IOException {
 		readData(fileName);
@@ -49,7 +53,7 @@ public class OPRCalc {
 		
 		String line = null;
 		while ((line = reader.readLine()) != null) {
-			String[] tokens = line.split(" ");
+			String[] tokens = line.split(",");
 			int [] intTokens = new int[tokens.length];
 			for (int i = 0; i < tokens.length; i++) {
 				intTokens[i] = Integer.parseInt(tokens[i]);
@@ -67,10 +71,12 @@ public class OPRCalc {
 		
 		teamList = tl.toArray(new Integer[0]);
 		Map<Integer, Integer> teamListMap = new HashMap<Integer, Integer>();
+		teamMatchCount = new HashMap<Integer, Integer>();
 		
 		for (int i = 0; i < teamList.length; i++) {
 			int team = teamList[i];
 			teamListMap.put(team, i);
+			teamMatchCount.put(team,  0);
 		}
 
 		matches = new double[dataAsList.size() * 2][teamList.length];
@@ -88,11 +94,12 @@ public class OPRCalc {
 			int score1 = data[0];				
 			int alliance1Team1 = data[2];
 			int alliance1Team2 = data[3];
-
-			int team1Index = teamListMap.get(alliance1Team1);
-			int team2Index = teamListMap.get(alliance1Team2); 
-			matches[row][team1Index] = 1d;
-			matches[row][team2Index] = 1d;
+			
+			teamMatchCount.put(alliance1Team1, teamMatchCount.get(alliance1Team1) + 1);
+			teamMatchCount.put(alliance1Team2, teamMatchCount.get(alliance1Team2) + 1);
+			
+			matches[row][teamListMap.get(alliance1Team1)] = 1d;
+			matches[row][teamListMap.get(alliance1Team2)] = 1d;
 			scores[row][0] = (double) score1;
 
 			row++;
@@ -101,16 +108,20 @@ public class OPRCalc {
 			int alliance2Team1 = data[4];
 			int alliance2Team2 = data[5];
 
+			teamMatchCount.put(alliance2Team1, teamMatchCount.get(alliance2Team1) + 1);
+			teamMatchCount.put(alliance2Team2, teamMatchCount.get(alliance2Team2) + 1);
+			
 			matches[row][teamListMap.get(alliance2Team1)] = 1d;
-			matches[row][teamListMap.get(alliance2Team2)] = 1d;
+			matches[row][teamListMap.get(alliance2Team2)] = 1d;			
 			scores[row][0] = (double) score2;
+			
 			row++;
 		}
 	}
 	
 	// Change the name of the scores file if you need to.
-	private static final String SCORES_FILE 	= "resources/scores.csv";
-	private static final String OPRS_FILE	= "resources/oprs.csv";
+	private static final String SCORES_FILE 	= "resources/all-scores.csv";
+	private static final String OPRS_FILE	= "resources/all-oprs.csv";
 	
 	public static void main(String[] args) throws IOException {
 		OPRCalc calc = new OPRCalc();
@@ -118,10 +129,14 @@ public class OPRCalc {
 		Integer[] teamList = calc.teamList;
 		
 		double[][] oprsArr = oprs.getArray();
+		TreeMap<Double, Integer> map = new TreeMap<Double, Integer>(Collections.reverseOrder());
+		for (int i = 0; i < teamList.length; i++) {
+			map.put(oprsArr[i][0], teamList[i]);
+		}
 		
 		PrintStream out = new PrintStream(OPRS_FILE);
-		for (int i = 0; i < oprsArr.length; i++) {
-			out.printf(teamList[i] + ",%.2f\n",oprsArr[i][0]);
+		for (Entry<Double, Integer> entry: map.entrySet()) {
+			out.printf(entry.getValue() + ",%.2f,%d\n", entry.getKey(), calc.teamMatchCount.get(entry.getValue()));
 		}
 		out.close();
 	}
