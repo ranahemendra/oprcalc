@@ -63,6 +63,10 @@ public class OPRCalc {
 			tl.add(intTokens[3]);
 			tl.add(intTokens[4]);
 			tl.add(intTokens[5]);
+			if (intTokens.length > 6) {
+				tl.add(intTokens[6]);
+				tl.add(intTokens[7]);
+			}
 			
 			dataAsList.add(intTokens);
 		}
@@ -79,6 +83,8 @@ public class OPRCalc {
 			teamMatchCount.put(team,  0);
 		}
 
+		// For every element in dataAsList, there were two matches (one for blue team and other 
+		// for red team) and two scores.
 		matches = new double[dataAsList.size() * 2][teamList.length];
 		scores = new double[dataAsList.size() * 2][1];
 
@@ -90,29 +96,45 @@ public class OPRCalc {
 			// 3rd index will have second team in the first alliance
 			// 4th index will have first team in the second alliance
 			// 5th index will have second team in the second alliance.
+			
+			int teamNum = 2;
 
 			int score1 = data[0];				
-			int alliance1Team1 = data[2];
-			int alliance1Team2 = data[3];
+			int alliance1Team1 = data[teamNum++];
+			int alliance1Team2 = data[teamNum++];
 			
 			teamMatchCount.put(alliance1Team1, teamMatchCount.get(alliance1Team1) + 1);
 			teamMatchCount.put(alliance1Team2, teamMatchCount.get(alliance1Team2) + 1);
 			
 			matches[row][teamListMap.get(alliance1Team1)] = 1d;
 			matches[row][teamListMap.get(alliance1Team2)] = 1d;
+			
+			if (data.length > 6) {
+				int alliance1Team3 = data[teamNum++];
+				teamMatchCount.put(alliance1Team3, teamMatchCount.get(alliance1Team3) + 1);
+				matches[row][teamListMap.get(alliance1Team3)] = 1d;
+			}
+			
 			scores[row][0] = (double) score1;
 
 			row++;
 
 			int score2 = data[1];
-			int alliance2Team1 = data[4];
-			int alliance2Team2 = data[5];
+			int alliance2Team1 = data[teamNum++];
+			int alliance2Team2 = data[teamNum++];
 
 			teamMatchCount.put(alliance2Team1, teamMatchCount.get(alliance2Team1) + 1);
 			teamMatchCount.put(alliance2Team2, teamMatchCount.get(alliance2Team2) + 1);
 			
 			matches[row][teamListMap.get(alliance2Team1)] = 1d;
-			matches[row][teamListMap.get(alliance2Team2)] = 1d;			
+			matches[row][teamListMap.get(alliance2Team2)] = 1d;	
+			
+			if (data.length > 6) {
+				int alliance2Team3 = data[teamNum++];
+				teamMatchCount.put(alliance2Team3, teamMatchCount.get(alliance2Team3) + 1);
+				matches[row][teamListMap.get(alliance2Team3)] = 1d;
+			}
+			
 			scores[row][0] = (double) score2;
 			
 			row++;
@@ -120,8 +142,8 @@ public class OPRCalc {
 	}
 	
 	// Change the name of the scores file if you need to.
-	private static final String SCORES_FILE 	= "resources/all-scores.csv";
-	private static final String OPRS_FILE	= "resources/all-oprs.csv";
+	private static final String SCORES_FILE 	= "resources/saratoga-scores.csv";
+	private static final String OPRS_FILE	= "resources/saratoga-oprs.csv";
 	
 	public static void main(String[] args) throws IOException {
 		OPRCalc calc = new OPRCalc();
